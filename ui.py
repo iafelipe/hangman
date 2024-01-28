@@ -1,224 +1,102 @@
+import os
+import string
 from time import sleep
 
 from rich import box, print
 from rich.align import Align
-from rich.columns import Columns
-from rich.console import Console, Group
 from rich.layout import Layout
 from rich.live import Live
 from rich.panel import Panel
-from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
-from rich.syntax import Syntax
 from rich.table import Table
+from rich.text import Text
 
-console = Console()
+from draws import hangman
+
+os.system("clear")
+ALPHABET = [letter for letter in string.ascii_uppercase]
+
 layout = Layout()
-layout.split_column(Layout(name="upper"), Layout(name="lower"))
-layout["upper"].ratio = 2
+layout.split_row(Layout(name="left"), Layout(name="right"))
+layout["right"].split_column(Layout(name="main"), Layout(name="prompt"))
+layout["main"].split(Layout(name="top"), Layout(name="mid"), Layout(name="bot"))
 
+layout["left"].size = 7
+layout["prompt"].size = 4
+layout["top"].size = 3
+layout["bot"].size = 3
 
-layout["upper"].split_row(
-    Layout(name="letters"), Layout(name="draw"), Layout(name="score")
+letters_grid = Table.grid()
+letters_grid.add_column()
+# for i in range(26):
+#     letters_grid.add_row(f"{chr(i + 65)}")
+letters_grid.add_row(" ".join(ALPHABET))
+
+layout["left"].update(
+    Panel(
+        Align(letters_grid, align="center", vertical="middle"),
+        box=box.SIMPLE,
+    )
 )
-layout["upper"]["draw"].ratio = 3
 
-table = Table(show_header=False, expand=True, leading=True, show_footer=False)
-table.add_column(justify="center", vertical="middle")
-table.add_column(justify="center", vertical="middle")
-table.add_row("a", "b")
-table.add_row("a", "b")
-table.add_row("a", "b")
-table.add_row("a", "b")
-table.add_row("a", "b")
-table.add_row("a", "b")
-table.add_row("a", "b")
-table.add_row("a", "b")
-table.add_row("a", "b")
-table.add_row("a", "b")
-table.add_row("a", "b")
-table.add_row("a", "b")
-table.add_row("a", "b")
+score_grid = Table.grid(expand=True)
+score_grid.add_column()
+score_grid.add_column(justify="right")
+score_grid.add_row("SCORE: 12345", "[red]LIFES: 4")
+layout["top"].update(Panel(score_grid, box=box.SIMPLE))
 
-layout["upper"]["letters"].update(table)
+rules = Text(
+    """Lorem ipsum dolor sit amet, consectetur 
+    adipiscing elit. Cras et ligula est. Sed facilisis 
+    tortor nunc, id tincidunt est condimentum et. 
+    Suspendisse magna elit, tempus interdum turpis ut, 
+    sollicitudin maximus diam. In non mattis risus.""",
+    justify="center",
+)
 
-layout["lower"].split(Layout(name="word"), Layout(name="options"))
-layout["lower"]["word"].ratio = 3
+draw_grid = Table.grid(expand=True, padding=(0, 0, 0, 10))
+draw_grid.add_column()
+draw_grid.add_column()
+draw_grid.add_row(
+    hangman[6],
+    Align(
+        Panel(
+            rules,
+            title="Rules",
+            width=30,
+        ),
+        vertical="middle",
+    ),
+)
 
+layout["mid"].update(
+    Panel(
+        Align(draw_grid, vertical="middle", align="center"),
+        title="HANGMAN",
+        box=box.SIMPLE,
+    )
+)
 
-# print(layout)
+word_progress = Text("A __ [green]C[/green] __ __ __ __")
+layout["bot"].update(
+    Panel(
+        Align(word_progress, align="center"),
+        box=box.SIMPLE,
+    )
+)
 
-# console.print(Panel("Hello, [red]World!", title="Welcome", subtitle="Thank you"))
+prompt_grid = Table.grid(expand=True)
+prompt_grid.add_column()
+prompt_grid.add_column(justify="right")
+prompt_grid.add_row("", "reset [-r], bet [-b], quit [-q]")
+prompt_grid.add_row("Enter a letter: ", "[red]ERROR")
+layout["prompt"].update(Panel(prompt_grid, box=box.SIMPLE))
 
-# if len(sys.argv) < 2:
-#     print("Usage: python columns.py DIRECTORY")
-# else:
-#     directory = os.listdir(sys.argv[1])
-#     columns = Columns(directory, equal=True, expand=True)
-#     console.print(columns)
+print(layout)
 
-"""
-Demonstrates a Rich "application" using the Layout and Live classes.
+# try:
+#     with Live(layout, refresh_per_second=4, screen=True):
+#         sleep(100)
+#     os.system("clear")
 
-"""
-
-
-with Live(layout, refresh_per_second=4, screen=True):
-    sleep(1000)
-
-# def make_layout() -> Layout:
-#     """Define the layout."""
-#     layout = Layout(name="root")
-
-#     layout.split(
-#         Layout(name="header", size=3),
-#         Layout(name="main", ratio=1),
-#         Layout(name="footer", size=7),
-#     )
-#     layout["main"].split_row(
-#         Layout(name="side"),
-#         Layout(name="body", ratio=2, minimum_size=60),
-#     )
-#     layout["side"].split(Layout(name="box1"), Layout(name="box2"))
-#     return layout
-
-
-# def make_sponsor_message() -> Panel:
-#     """Some example content."""
-#     sponsor_message = Table.grid(padding=1)
-#     sponsor_message.add_column(style="green", justify="right")
-#     sponsor_message.add_column(no_wrap=True)
-#     sponsor_message.add_row(
-#         "Twitter",
-#         "[u blue link=https://twitter.com/textualize]https://twitter.com/textualize",
-#     )
-#     sponsor_message.add_row(
-#         "CEO",
-#         "[u blue link=https://twitter.com/willmcgugan]https://twitter.com/willmcgugan",
-#     )
-#     sponsor_message.add_row(
-#         "Textualize", "[u blue link=https://www.textualize.io]https://www.textualize.io"
-#     )
-
-#     message = Table.grid(padding=1)
-#     message.add_column()
-#     message.add_column(no_wrap=True)
-#     message.add_row(sponsor_message)
-
-#     message_panel = Panel(
-#         Align.center(
-#             Group("\n", Align.center(sponsor_message)),
-#             vertical="middle",
-#         ),
-#         box=box.ROUNDED,
-#         padding=(1, 2),
-#         title="[b red]Thanks for trying out Rich!",
-#         border_style="bright_blue",
-#     )
-#     return message_panel
-
-
-# class Header:
-#     """Display header with clock."""
-
-#     def __rich__(self) -> Panel:
-#         grid = Table.grid(expand=True)
-#         grid.add_column(justify="center", ratio=1)
-#         grid.add_column(justify="right")
-#         grid.add_row(
-#             "[b]Rich[/b] Layout application",
-#             datetime.now().ctime().replace(":", "[blink]:[/]"),
-#         )
-#         return Panel(grid, style="white on blue")
-
-
-# def make_syntax() -> Syntax:
-#     code = """\
-# def ratio_resolve(total: int, edges: List[Edge]) -> List[int]:
-#     sizes = [(edge.size or None) for edge in edges]
-
-#     # While any edges haven't been calculated
-#     while any(size is None for size in sizes):
-#         # Get flexible edges and index to map these back on to sizes list
-#         flexible_edges = [
-#             (index, edge)
-#             for index, (size, edge) in enumerate(zip(sizes, edges))
-#             if size is None
-#         ]
-#         # Remaining space in total
-#         remaining = total - sum(size or 0 for size in sizes)
-#         if remaining <= 0:
-#             # No room for flexible edges
-#             sizes[:] = [(size or 0) for size in sizes]
-#             break
-#         # Calculate number of characters in a ratio portion
-#         portion = remaining / sum((edge.ratio or 1) for _, edge in flexible_edges)
-
-#         # If any edges will be less than their minimum, replace size with the minimum
-#         for index, edge in flexible_edges:
-#             if portion * edge.ratio <= edge.minimum_size:
-#                 sizes[index] = edge.minimum_size
-#                 break
-#         else:
-#             # Distribute flexible space and compensate for rounding error
-#             # Since edge sizes can only be integers we need to add the remainder
-#             # to the following line
-#             _modf = modf
-#             remainder = 0.0
-#             for index, edge in flexible_edges:
-#                 remainder, size = _modf(portion * edge.ratio + remainder)
-#                 sizes[index] = int(size)
-#             break
-#     # Sizes now contains integers only
-#     return cast(List[int], sizes)
-#     """
-#     syntax = Syntax(code, "python", line_numbers=True)
-#     return syntax
-
-
-# job_progress = Progress(
-#     "{task.description}",
-#     SpinnerColumn(),
-#     BarColumn(),
-#     TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-# )
-# job_progress.add_task("[green]Cooking")
-# job_progress.add_task("[magenta]Baking", total=200)
-# job_progress.add_task("[cyan]Mixing", total=400)
-
-# total = sum(task.total for task in job_progress.tasks)
-# overall_progress = Progress()
-# overall_task = overall_progress.add_task("All Jobs", total=int(total))
-
-# progress_table = Table.grid(expand=True)
-# progress_table.add_row(
-#     Panel(
-#         overall_progress,
-#         title="Overall Progress",
-#         border_style="green",
-#         padding=(2, 2),
-#     ),
-#     Panel(job_progress, title="[b]Jobs", border_style="red", padding=(1, 2)),
-# )
-
-
-# layout = make_layout()
-# layout["header"].update(Header())
-# layout["body"].update(make_sponsor_message())
-# layout["box2"].update(Panel(make_syntax(), border_style="green"))
-# layout["box1"].update(Panel(layout.tree, border_style="red"))
-# layout["footer"].update(progress_table)
-
-
-# from time import sleep
-
-# from rich.live import Live
-
-# with Live(layout, refresh_per_second=10, screen=True):
-#     while not overall_progress.finished:
-#         sleep(0.1)
-#         for job in job_progress.tasks:
-#             if not job.finished:
-#                 job_progress.advance(job.id)
-
-#         completed = sum(task.completed for task in job_progress.tasks)
-#         overall_progress.update(overall_task, completed=completed)
+# except KeyboardInterrupt:
+#     os.system("clear")
