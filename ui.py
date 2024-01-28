@@ -1,85 +1,102 @@
 import os
 import string
-from time import sleep
 
-from rich import box, print
+from rich import box
 from rich.align import Align
+from rich.console import Console
 from rich.layout import Layout
-from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
 from draws import hangman
 
-os.system("clear")
+word = "radiant"
+length = len(word)
+guess = ["__"] * length
+guess[0] = "R"
+guess[2] = "D"
+guess[6] = "T"
+
 ALPHABET = [letter for letter in string.ascii_uppercase]
+stddict = {c: c for c in ALPHABET}
+
+letters = " ".join(stddict.values())
 
 layout = Layout()
-layout.split_row(Layout(name="left"), Layout(name="right"))
-layout["right"].split_column(Layout(name="main"), Layout(name="prompt"))
-layout["main"].split(Layout(name="top"), Layout(name="mid"), Layout(name="bot"))
+console = Console()
 
-layout["left"].size = 7
-layout["prompt"].size = 4
-layout["top"].size = 3
-layout["bot"].size = 3
+layout.split(Layout(name="header"), Layout(name="main"))
+layout["header"].size = 4
+layout["main"].split_row(Layout(name="left"), Layout(name="right"))
 
-letters_grid = Table.grid()
-letters_grid.add_column()
-# for i in range(26):
-#     letters_grid.add_row(f"{chr(i + 65)}")
-letters_grid.add_row(" ".join(ALPHABET))
+layout["left"].split(Layout(name="draw"))
+layout["right"].split(Layout(name="scores"), Layout(name="rules"))
+layout["scores"].size = 5
 
-layout["left"].update(
+layout["header"].update(
     Panel(
-        Align(letters_grid, align="center", vertical="middle"),
-        box=box.SIMPLE,
-    )
-)
-
-score_grid = Table.grid(expand=True)
-score_grid.add_column()
-score_grid.add_column(justify="right")
-score_grid.add_row("SCORE: 12345", "[red]LIFES: 4")
-layout["top"].update(Panel(score_grid, box=box.SIMPLE))
-
-rules = Text(
-    """Lorem ipsum dolor sit amet, consectetur 
-    adipiscing elit. Cras et ligula est. Sed facilisis 
-    tortor nunc, id tincidunt est condimentum et. 
-    Suspendisse magna elit, tempus interdum turpis ut, 
-    sollicitudin maximus diam. In non mattis risus.""",
-    justify="center",
-)
-
-draw_grid = Table.grid(expand=True, padding=(0, 0, 0, 10))
-draw_grid.add_column()
-draw_grid.add_column()
-draw_grid.add_row(
-    hangman[6],
-    Align(
-        Panel(
-            rules,
-            title="Rules",
-            width=30,
+        Align(
+            Text.from_markup(" ".join(stddict.values())),
+            align="center",
+            vertical="bottom",
         ),
-        vertical="middle",
-    ),
-)
-
-layout["mid"].update(
-    Panel(
-        Align(draw_grid, vertical="middle", align="center"),
-        title="HANGMAN",
         box=box.SIMPLE,
     )
 )
 
-word_progress = Text("A __ [green]C[/green] __ __ __ __")
-layout["bot"].update(
+draw_grid = Table.grid(expand=True)
+draw_grid.add_column()
+draw_grid.add_row(hangman[6])
+draw_grid.add_row("\n")
+draw_grid.add_row(Text(" ".join(guess), justify="center"))
+
+layout["draw"].update(
     Panel(
-        Align(word_progress, align="center"),
+        Align(
+            draw_grid,
+            align="center",
+            vertical="top",
+        ),
+        box=box.SIMPLE,
+    )
+)
+
+layout["rules"].update(
+    Panel(
+        Panel(
+            Align(
+                Text(
+                    """Lorem ipsum dolor sit amet, consectetur
+    adipiscing elit. Cras et ligula est. Sed facilisis
+    tortor nunc, id tincidunt est condimentum et.
+    Suspendisse magna elit, tempus interdum turpis ut,
+    sollicitudin maximus"""
+                ),
+                align="center",
+                vertical="middle",
+            ),
+            padding=(0, 2),
+            title="Rules",
+        ),
+        padding=(0, 5, 2, 5),
+        box=box.SIMPLE,
+    )
+)
+
+scores_grid = Table.grid(expand=True)
+scores_grid.add_column(justify="center")
+scores_grid.add_row(" [red]* " * 5)
+scores_grid.add_row("")
+scores_grid.add_row("[green]SCORE:[/green] 123345")
+
+layout["scores"].update(
+    Panel(
+        Align(
+            scores_grid,
+            align="center",
+            vertical="middle",
+        ),
         box=box.SIMPLE,
     )
 )
@@ -87,16 +104,14 @@ layout["bot"].update(
 prompt_grid = Table.grid(expand=True)
 prompt_grid.add_column()
 prompt_grid.add_column(justify="right")
-prompt_grid.add_row("", "reset [-r], bet [-b], quit [-q]")
-prompt_grid.add_row("Enter a letter: ", "[red]ERROR")
-layout["prompt"].update(Panel(prompt_grid, box=box.SIMPLE))
+prompt_grid.add_row("[grey]reset [-r], bet [-b], quit [-q][/grey]", "")
+prompt_grid.add_row("", "")
+prompt_grid.add_row("a", "Invalid prompt!")
 
-print(layout)
+console.print(layout)
+console.input(" > Enter a letter: ")
+os.system("clear")
 
-# try:
-#     with Live(layout, refresh_per_second=4, screen=True):
-#         sleep(100)
-#     os.system("clear")
-
-# except KeyboardInterrupt:
-#     os.system("clear")
+console.print(layout)
+console.input(" > Enter a letter: ")
+os.system("clear")
