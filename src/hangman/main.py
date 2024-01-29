@@ -6,7 +6,7 @@ from collections.abc import Iterable
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
-from ui import display
+from .ui import display
 
 ALPHABET = [letter for letter in string.ascii_uppercase]
 

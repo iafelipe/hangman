@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hangman"
+version = "1.0"
+authors = [
+  { name="Igor Felipe", email="igorafelipe@gmail.com" },
+]
+dependencies = ["rich"]
+
+[project.scripts]
+hangman = "hangman:main"

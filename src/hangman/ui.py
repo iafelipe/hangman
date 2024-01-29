@@ -5,7 +5,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from draws import hangman
+from .draws import hangman
 
 
 def display(
