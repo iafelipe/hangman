@@ -1,1 +1,1 @@
-# hangman
+<img src="doc/hangman.svg">
