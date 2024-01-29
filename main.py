@@ -1,14 +1,21 @@
+import os
 import random
 import string
+from collections.abc import Iterable
+
+from rich.console import Console
+from rich.prompt import Confirm, Prompt
+
+from ui import display
+
+ALPHABET = [letter for letter in string.ascii_uppercase]
 
 
-def pick_word(words_file):
-    with open(words_file, "r", encoding="utf-8") as f:
-        words = f.read().split("\n")
-        return random.choice(words)
+def clear_screen() -> None:
+    os.system("cls" if os.name == "nt" else "clear")
 
 
-def find_indices(char, word):
+def search_char(char: str, word: str) -> Iterable[int]:
     index = -1
     while True:
         index = word.find(char, index + 1)
@@ -17,50 +24,77 @@ def find_indices(char, word):
         yield index
 
 
-def is_valid(char):
-    if char in string.ascii_letters:
-        return True
-    else:
-        return False
+def main() -> None:
+    try:
+        console = Console()
 
+        with open("words.txt", "r", encoding="utf-8") as f:
+            possible_words = f.read().splitlines()
 
-def main():
-    # word = pick_word("words.tchart")
-    wrong_guesses = 0
-    right_guesses = 0
-    word = "radiant"
-    length = len(word)
-    guess = ["__,"] * length
+            while True:
+                word = random.choice(possible_words).upper()
+                guess = ["__"] * len(word)
+                wrong_letters = []
+                rich_letters = {c: c for c in ALPHABET}
 
-    while True:
-        print(guess, "\n")
+                count_wrong = 0
+                count_right = 0
+                valid_char = True
+                repeated_letter = False
 
-        if wrong_guesses == 6:
-            print("You lost!")
-            break
+                while True:
+                    clear_screen()
+                    display(console, count_wrong, guess, rich_letters)
 
-        if right_guesses == length:
-            print("You win!")
-            break
+                    if count_wrong == 6:
+                        console.print("[red]You lost! :cry::2nd_place_medal:")
+                        break
 
-        char = input("Insert a letter: ")
-        if is_valid(char):
-            if char in guess:
-                print("You've already enter this letter, select another one\n")
+                    if count_right == len(word):
+                        console.print("[green]You win! :smiley::1st_place_medal:")
+                        break
 
-            else:
-                if char in word:
-                    print("You find a word!\n")
-                    for i in find_indices(char, word):
-                        guess[i] = char
-                        right_guesses += 1
+                    if not valid_char:
+                        console.print("[prompt.invalid]Please enter a valid letter!")
 
-                else:
-                    print("-1 body part\n")
-                    wrong_guesses += 1
+                    if repeated_letter:
+                        console.print(
+                            "[prompt.invalid]You've already entered this letter!"
+                        )
 
-        else:
-            print("Please enter a valid letter\n")
+                    char = Prompt.ask("Insert a letter [cyan](-q to quit)").upper()
+
+                    if char == "-Q":
+                        break
+
+                    valid_char = char in ALPHABET
+
+                    if valid_char:
+                        if char in guess or char in wrong_letters:
+                            repeated_letter = True
+
+                        else:
+                            if char in word:
+                                for i in search_char(char, word):
+                                    count_right += 1
+                                    guess[i] = char
+                                    rich_letters[
+                                        char
+                                    ] = f"[bold green]{char}[/bold green]"
+
+                            else:
+                                count_wrong += 1
+                                wrong_letters.append(char)
+                                rich_letters[char] = f"[bold red]{char}[/bold red]"
+
+                restart = Confirm.ask("Wanna play again?", default=True)
+                if not restart:
+                    break
+
+                clear_screen()
+
+    except KeyboardInterrupt:
+        console.print(" [yellow]See you later! :wave::smiley:")
 
 
 if __name__ == "__main__":
