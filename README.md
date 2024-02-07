@@ -15,4 +15,6 @@ pip install -e .
 ```
 Use the `-e` flag to install in editable mode, so you can change the words in `words.py` without having to reinstall it.
 
-To run the application, just type `hangman` in the terminal.
+## Usage
+
+To play, just type `hangman` in the terminal.
